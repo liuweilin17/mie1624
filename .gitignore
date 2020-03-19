@@ -1,3 +1,22 @@
+node_modules/
+A1/reference
+A1/liu_1005482826_assignment1.pptx
+A1/multiple_choice_responses.csv
+A1/KaggleSalary_DataSet.ipynb
+project/crawl/linkedin/crawl_api/
+project/crawl/linkedin/crawl_node/res*
+project/crawl/linkedin/crawl_node/run.log
+# project/crawl/linkedin/crawl_node/node_modules/
+project/crawl/linkedin/crawl_node/package-lock.json
+project/crawl/linkedin/crawl_node/linkedin_jobs.csv
+project/crawl/udemy/crawl_node/data/
+project/crawl/udemy/crawl_node/package-lock.json
+project/crawl/udemy/crawl_node/run.log
+# project/crawl/udemy/crawl_node/node_modules/
+project/crawl/udemy/crawl_node/node_modules
+
+.DS_Store
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
