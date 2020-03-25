@@ -6,13 +6,11 @@ A1/KaggleSalary_DataSet.ipynb
 project/crawl/linkedin/crawl_api/
 project/crawl/linkedin/crawl_node/res*
 project/crawl/linkedin/crawl_node/run.log
-# project/crawl/linkedin/crawl_node/node_modules/
 project/crawl/linkedin/crawl_node/package-lock.json
 project/crawl/linkedin/crawl_node/linkedin_jobs.csv
 project/crawl/udemy/crawl_node/data/
 project/crawl/udemy/crawl_node/package-lock.json
 project/crawl/udemy/crawl_node/run.log
-# project/crawl/udemy/crawl_node/node_modules/
 project/crawl/udemy/crawl_node/node_modules
 
 .DS_Store
