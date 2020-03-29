@@ -17,6 +17,7 @@ for i in range(1, 96):
                 title = arr[0]
                 rating_num = arr[-1]
                 rating = arr[-2]
+                link = course['link']
                 j = -3
                 while True:
                     if 'CA$' not in arr[j] and 'price' not in arr[j] and 'Price' not in arr[j] and arr[j].strip()!='Free' :
@@ -28,8 +29,9 @@ for i in range(1, 96):
                 res.append({
                     "title": title,
                     "rating": rating,
+                    "level": level,
+                    "link": link,
                     "detail": detail,
-                    "level": level
                 })
                 # print(course['title'])
                 # print({

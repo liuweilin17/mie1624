@@ -1,0 +1,482 @@
+extends layout
+
+block content
+  h1=title
+  p Welcome to #{title}
+  div(class='form-group row')
+    div(class="col-sm-3")
+      select(class='form-control' style="width:auto;" id="location-sel")
+        each location, i in locations
+          option(value=i) #{location}
+    div(class="input-group col-sm-8")
+      input(type="text" class="form-control" name="query" placeholder="Search the jobs")
+      div(class="input-group-append")
+        button(class="btn btn-secondary" type="button" id="search-btn")
+          i(class="fa fa-search")
+  div(class="row")
+    div(class="col-sm-6" id="job-result")
+    div(class="col-sm-6" id="skill-result")
+  //- div(id="course-result")
+  //-   button(class="btn btn-info" type="button", id="rec-btn")
+
+  script.
+    // machine learning, language, library & software, cloud & big data, other 
+    var skills = {
+      'machine learning': 'machine learning',
+      'math': 'machine learning',
+      'statistic': 'machine learning',
+      'analytic': 'machine learning',
+      'quantitative': 'machine learning',
+      'optimization': 'machine learning',
+      'deep learning': 'machine learning',
+      'linear': 'machine learning',
+      'natural language processing': 'machine learning',
+      'reinforcement learning': 'machine learning',
+      'recommend': 'machine learning',
+      'cyber': 'machine learning',
+      'graph': 'machine learning',
+      'nlp': 'machine learning',
+      'visual': 'machine learning',
+      'sql': 'language',
+      'python': 'language',
+      'r': 'language',
+      'matlab': 'language',
+      'scala': 'language',
+      'pig': 'language',
+      'sas': 'library & software',
+      'excel': 'library & software',
+      'powerpoint': 'library & software',
+      'tableau': 'library & software',
+      'stata': 'library & software',
+      'scikit': 'library & software',
+      'weka': 'library & software',
+      'tensorflow': 'library & software',
+      'pytorch': 'library & software',
+      'git': 'library & software',
+      'cloud': 'cloud & big data',
+      'big data': 'cloud & big data',
+      'aws': 'cloud & big data',
+      'gcp': 'cloud & big data',
+      'google cloud': 'cloud & big data',
+      'azure': 'cloud & big data',
+      'hadoop': 'cloud & big data',
+      'hive': 'cloud & big data',
+      'spark': 'cloud & big data',
+      'nosql': 'cloud & big data', 
+      'financial': 'other',
+      'economic': 'other',
+      'rest': 'other',
+    }
+    var categ_color = {
+      'machine learning': 'text-danger',
+      'language': 'text-primary',
+      'library & software': 'text-success',
+      'cloud & big data': 'text-warning',
+      'other': 'text-info'
+    };
+    var categ_num_dt = {
+      'machine learning': 'c1-num',
+      'language': 'c2-num',
+      'library & software': 'c3-num',
+      'cloud & big data': 'c4-num',
+      'other': 'c5-num'
+    }
+    var skill_count = {}; // freq of skill
+    var categ_count = {}; // skill found in each categ
+
+    $(document).ready(function() {
+      console.log('document ready.');
+    });
+
+    $('#search-btn').click(function() {
+      clean_ele('job-result');
+      clean_ele('skill-result');
+      skill_count = {}
+      categ_count = {}
+      var divTag = $('#job-result');
+      divTag.append(`
+        <h5>
+          <span id='job-title'> Job Searching ...</span>
+          <span class='badge badge-secondary' id='job-num'>0</span>
+        </h5>
+        <p>
+          <button type="button" class="btn btn-danger btn-sm">
+            machine learning <span class="badge badge-light" id='c1-num'>0</span>
+          </button>
+          <button type="button" class="btn btn-primary btn-sm" >
+            language <span class="badge badge-light" id='c2-num'>0</span>
+          </button>
+          <button type="button" class="btn btn-success btn-sm">
+            library & software <span class="badge badge-light" id='c3-num'>0</span>
+          </button>
+          <button type="button" class="btn btn-warning btn-sm">
+            cloud & big data <span class="badge badge-light" id='c4-num'>0</span>
+          </button>
+          <button type="button" class="btn btn-info btn-sm">
+            other <span class="badge badge-light" id='c5-num'>0</span>
+          </button>
+        </p>
+      `);
+      console.log('search-btn clicked.');
+      const location = $('select#location-sel').val() === '0' ? 'Canada' : 'United States';
+      const query = $('input[name=query]').val();
+      console.log(location, query);
+
+      // Use Websocket to insert a row in table when one job is crawled
+      // if user is running mozilla then use it's built-in WebSocket
+      window.WebSocket = window.WebSocket || window.MozWebSocket;
+      var connection = new WebSocket('ws://127.0.0.1:1337');
+      connection.onopen = function () {
+        console.log("websokcet connection established!");
+        this.send(JSON.stringify({'location': location, 'query': query}));
+      };
+      connection.onerror = function (error) {
+        console.log('websokcet error');
+      };
+      connection.onmessage = function (message) {
+        // message is json object
+        try {
+          var divTag = $('#job-result');
+          var tableTag = $('#job-table');
+          if (!tableTag.length) {
+            var tableHTML = `
+              <table class='table table-hover table-sm'>
+                <thead><tr>
+                  <th>Title</th>
+                  <th>Place</th>
+                  <th>Company</th>
+                  <th>Description</th>
+                </tr></thead>
+                <tbody id='job-table'></tbody>
+              </table> `;
+            divTag.append(tableHTML);
+            tableTag = $('#job-table');
+          }
+          var job = JSON.parse(message.data);
+          var job_num = $('#job-num').text();
+          job.Description = formatDescription(job.Description, job_num);
+          var row = creatRow(job);
+          tableTag.append(row);
+          incrementNum('job-num', 1);
+        } catch (e) {
+          console.log(e);
+          return;
+        }
+      };
+      connection.onclose = function (message) {
+        console.log('websocket closed by server');
+        $('#job-title').text('Job Results');
+        var skills = Object.keys(skill_count).sort(function(a, b) {
+          return skill_count[b] - skill_count[a];
+        });
+        
+        console.log('skills: ', skills);
+        console.log('skill_count: ', skill_count);
+        console.log('categ_count: ', categ_count);
+        // Create the chart
+        clean_ele('skill-result');
+        var divTag = $('#skill-result');
+        divTag.append("<h5>Skills Analysis</h5>");
+        divTag.append("<h6>Top Skills</h5>");
+        divTag.append("<div id='top-skill' style='width:100%; height:800px;'></div>")
+        divTag.append("<h6>Skill Categories</h5>");
+        divTag.append("<div id='skill-categ'></div>")
+      
+        // 1: hbar top skills
+        var chart1 = createChart1('top-skill', skills.slice(0,30));
+        // 2. pie chart of categories
+        var chart2 = createChart2('skill-categ');
+        // 3. bar skills in "machine learning"
+        // 4. bar skills in "language"
+        // 5. bar skills in "library & software"
+        // 6. bar skills in "cloud & big data"
+        // 7. bar skills in "other"
+        clean_ele('rec-result');
+        divTag.append("<h5>Courses Recommend</h5>");
+        divTag.append("<div id='rec-result'></div>");
+        recHandle();
+      };
+    });
+
+    function recHandle() {
+      console.log('recHandle function');
+      var sortSkillCateg = {}
+      for(categ in categ_count){
+        var skillsArr = Object.keys(categ_count[categ]).sort(function(a, b) {
+          return skill_count[b] - skill_count[a];
+        });
+        sortSkillCateg[categ] = skillsArr;
+      }
+      console.log('skills of categ: ', sortSkillCateg);
+
+      clean_ele('rec-result');
+      var divTag = $('#rec-result');
+      divTag.append(`
+        <table class='table table-sm'>
+          <thead><tr>
+            <th>Title</th>
+            <th>Rating</th>
+            <th>Level</th>
+          </tr></thead>
+          <tbody id='rec-table'></tbody>
+          </table>
+      `);
+      coursesRec(sortSkillCateg)
+      .then(data => {
+        console.log('rec success: ', data);
+        var tBody = $('#rec-table');
+        for(course of data){
+          tBody.append(`
+            <tr>
+              <td><a href='${course.link}'>${course.title}</a></td>
+              <td>${course.rating}</td>
+              <td>${course.level}</td>
+            </tr>
+          `);
+        }
+      })
+      .catch(error => {
+        console.log('rec error: ', error);
+      })
+    }
+
+    function clean_ele(elementId) {
+      $(`#${elementId}`).html('');
+    }
+
+    function creatRow(jobObj) {
+      return `
+        <tr>
+          <td><a href="${jobObj.Link}">${jobObj.Title}</a></td>
+          <td>${jobObj.Place}</td>
+          <td>${jobObj.Company}</td>
+          <td>${jobObj.Description}</td>
+        </tr>`;
+    }
+
+    function renderSkill(word, categ) {
+      return `
+        <span class="${categ_color[categ]}">${word}</span>
+      `;
+    }
+
+    function updateCount(skill, categ) {
+      if(skill in skill_count) skill_count[skill] += 1;
+      else skill_count[skill] = 1;
+      if(categ in categ_count) {
+        if(! Object.keys(categ_count[categ]).includes(skill)){
+          categ_count[categ][skill] = 1;
+        }
+      } else {
+        categ_count[categ] = {[skill]: 1};
+      }
+    }
+
+    function formatDescription(d, job_num) {
+      var words = d.split(" ");
+      var l = words.length;
+      var mid = 5;
+      var p1 = [];
+      var p2 = [];
+      var i = 0;
+      while(i<l) {
+        var word1 = words[i];
+        var word2 = words.slice(i,i+2).join(' ');
+        var word3 = words.slice(i,i+3).join(' ');
+        // match skill, record in dict
+        var isMatch = false;
+        for (var skill in skills) {
+          var categ = skills[skill];
+          var skillLen = skill.split(' ').length;
+          if(skill.length <= 5) {
+            // strict match with word1
+            if(skill === word1.replace(/[^\w\s]|_/g, "").toLowerCase()) {
+              var wordRender = renderSkill(word1, categ);
+              if(i < mid) p1.push(wordRender);
+              else p2.push(wordRender);
+              updateCount(skill, categ);
+              incrementNum(categ_num_dt[categ], 1);
+              isMatch = true;
+              i += 1;
+              break;
+            }
+          } else if(skillLen === 1) {
+            // fuzzy match with word1
+            if(word1.replace(/[^\w\s]|_/g, "").toLowerCase().includes(skill)) {
+              var wordRender = renderSkill(word1, categ);
+              if(i < mid) p1.push(wordRender);
+              else p2.push(wordRender);
+              updateCount(skill, categ);
+              incrementNum(categ_num_dt[categ], 1);
+              isMatch = true;
+              i += 1;
+              break;
+            }
+          } else if(skillLen === 2) {
+            // fuzzy match with word2
+            if(word2.replace(/[^\w\s]|_/g, "").toLowerCase().includes(skill)) {
+              var wordRender = renderSkill(word2, categ);
+              if(i < mid) p1.push(wordRender);
+              else p2.push(wordRender);
+              i += 2;
+              updateCount(skill, categ);
+              incrementNum(categ_num_dt[categ], 1);
+              isMatch = true
+              break;
+            }  
+          } else if(skillLen === 3) {
+            // fuzzy match with word3
+            if(word3.replace(/[^\w\s]|_/g, "").toLowerCase().includes(skill)) {
+              var wordRender = renderSkill(word3, categ);
+              if(i < mid) p1.push(wordRender);
+              else p2.push(wordRender);
+              i += 3;
+              updateCount(skill, categ);
+              incrementNum(categ_num_dt[categ], 1);
+              isMatch = true;
+              break;
+            }
+          } else{}
+        }
+        if(!isMatch) {
+          if(i < mid) p1.push(words[i]);
+          else p2.push(words[i]);
+          i += 1
+        }
+      }
+      return `
+        <p>
+          ${p1.join(" ")}
+          <span id="dots${job_num}">...</span>
+          <span id="more${job_num}" style="display:none">${p2.join(" ")}</span>
+          <a id="link${job_num}" href="javascript:more_less(${job_num})">more</a>
+        </p>
+      `;
+    }
+
+    function incrementNum(container, step) {
+      var cur = parseInt($(`#${container}`).text());
+      $(`#${container}`).text((cur+step).toString());
+    }
+
+    function more_less(job_num) {
+      if($(`#dots${job_num}`).is(":visible")) {
+        $(`#dots${job_num}`).hide();
+        $(`#more${job_num}`).show();
+        $(`#link${job_num}`).text("less");
+      } else {
+        $(`#dots${job_num}`).show();
+        $(`#more${job_num}`).hide();
+        $(`#link${job_num}`).text("more");
+      }
+    }
+
+    function createChart1(container, skills){
+      y = [];
+      for(skill of skills) {
+        y.push(skill_count[skill]);
+      }
+      return Highcharts.chart(container, {
+            chart: {
+                type: 'bar'
+            },
+            title: {
+                text: null
+            },
+            xAxis: {
+                categories: skills
+            },
+            yAxis: {
+                title: {
+                    text: 'Frequencies'
+                }
+            },
+            series: [{
+                name: 'Skills',
+                data: y
+            }]
+        });
+    }
+
+    function createChart2(container){
+      var categ_dict = {}
+      var total = 0
+      for(categ in categ_count) {
+        for(skill in categ_count[categ]){
+          if(categ in categ_dict) {
+            categ_dict[categ] += skill_count[skill];
+            total += skill_count[skill];
+          } else {
+            categ_dict[categ] = skill_count[skill];
+            total += skill_count[skill];
+          }
+        }
+      }
+      var categs = Object.keys(categ_dict);
+      var y = []
+      
+      for(categ of categs) {
+        y.push({
+          name: categ,
+          y: categ_dict[categ] / total
+        });
+      }
+      return Highcharts.chart(container, {
+            chart: {
+              plotBackgroundColor: null,
+              plotBorderWidth: null,
+              plotShadow: false,
+              type: 'pie'
+            },
+            title: {
+                text: null
+            },
+            tooltip: {
+              pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+            },
+            accessibility: {
+              point: {
+                valueSuffix: '%'
+              }
+            },
+            plotOptions: {
+              pie: {
+                allowPointSelect: true,
+                cursor: 'pointer',
+                dataLabels: {
+                    enabled: true,
+                    format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+                }
+              }
+            },
+            series: [{
+              name: 'Categories',
+              colorByPoint: true,
+              data: y
+            }]
+        });
+    }
+
+    function coursesRec(sortSkillCateg) {
+      return new Promise((resolve, reject) => {
+        $.ajax({
+          url: 'search',
+          type: 'POST',
+          beforeSend: function() {
+            // Show loading gif if you like
+          },
+          data: sortSkillCateg,
+          success: function(data) {
+            resolve(data);
+          },
+          error: function(error) {
+            reject(error);
+          },
+        });
+      });
+    }
+
+  
+
+    
+    
