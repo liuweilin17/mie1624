@@ -25,6 +25,7 @@ nodemon server.js
 npm start
 
 ```
+* Visit the url: http://localhost:3000/
 
 ### References
 * [Node.js & WebSocket — Simple chat tutorial](https://medium.com/@martin.sikora/node-js-websocket-simple-chat-tutorial-2def3a841b61)
