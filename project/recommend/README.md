@@ -14,18 +14,19 @@ Courses Recommendation is a system built for MIE1624 project, able to search and
 
 ### Install
 ```npm install --save```
-
+```npm install -g nodemon```
 ### Running
-* crawler server: 
+* Start crawler server: 
 ```
 nodemon server.js
 ```
-* Web server: 
+If there is error of ``` nodemon unknown command```, try ```sudo npm install -g --force nodemon```
+* Start web server: 
 ```
 npm start
 
 ```
-* Visit the url: http://localhost:3000/
+* Visit the website: http://localhost:3000/
 
 ### References
 * [Node.js & WebSocket — Simple chat tutorial](https://medium.com/@martin.sikora/node-js-websocket-simple-chat-tutorial-2def3a841b61)
