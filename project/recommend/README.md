@@ -24,7 +24,6 @@ If there is error of ``` nodemon unknown command```, try ```sudo npm install -g 
 * Start web server: 
 ```
 npm start
-
 ```
 * Visit the website: http://localhost:3000/
 
