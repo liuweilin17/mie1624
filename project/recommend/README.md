@@ -13,8 +13,11 @@ Courses Recommendation is a system built for MIE1624 project, able to search and
 * Web server. The ```app.js``` is the starting file for the web.
 
 ### Install
-```npm install --save```
-```npm install -g nodemon```
+```
+npm install --save
+npm install -g nodemon
+```
+
 ### Running
 * Start crawler server: 
 ```
