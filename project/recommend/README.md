@@ -31,6 +31,7 @@ npm start
 * Visit the website: http://localhost:3000/
 
 * Demo
+
 ![Demo](demo.gif)
 
 ### References
