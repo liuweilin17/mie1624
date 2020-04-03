@@ -30,6 +30,9 @@ npm start
 ```
 * Visit the website: http://localhost:3000/
 
+* Demo
+![Demo](demo.gif)
+
 ### References
 * [Node.js & WebSocket — Simple chat tutorial](https://medium.com/@martin.sikora/node-js-websocket-simple-chat-tutorial-2def3a841b61)
 * [Node.js Linkedin Crawling](https://github.com/spinlud/linkedin-jobs-scraper)
